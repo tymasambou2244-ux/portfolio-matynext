@@ -1,3 +1,6 @@
+// Initialisation EmailJS (remplacez par vos vraies clés)
+emailjs.init('rWzRk0GjeMgitQrbP'); // Remplacez par votre clé publique EmailJS
+
 const navToggle = document.querySelector('.nav-toggle');
 const navLinks = document.querySelector('.nav-links');
 
@@ -64,57 +67,48 @@ window.addEventListener('scroll', () => {
 
 // Gestion du formulaire de contact
 const contactForm = document.getElementById('contactForm');
+console.log('contactForm trouvé?', contactForm); // DÉBOGAGE
+
 if (contactForm) {
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault(); // Empêche la soumission par défaut
-    
+  console.log('Formulaire détecté, ajout de l\'écouteur'); // DÉBOGAGE
+  contactForm.addEventListener('submit', (e) => {
+    console.log('Formulaire soumis!'); // DÉBOGAGE
+    e.preventDefault(); // Empêcher la soumission par défaut
+
     const submitButton = contactForm.querySelector('.btn-submit');
     const originalText = submitButton.innerHTML;
-    
-    // Change le texte du bouton pendant l'envoi
+
+    // Indicateur d'envoi et désactivation du bouton
     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
     submitButton.disabled = true;
-    
-    try {
-      const formData = new FormData(contactForm);
-      
-      const response = await fetch('https://formsubmit.co/matynext@outlook.com', {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (response.ok) {
-        // Succès
-        submitButton.innerHTML = '<i class="fas fa-check"></i> Message envoyé !';
-        submitButton.style.backgroundColor = '#28a745';
-        contactForm.reset();
-        
-        // Affiche un message de confirmation
-        showConfirmationMessage('Merci ! Votre message a été envoyé avec succès. Je vous répondrai bientôt.');
-        
-        // Remet le bouton à l'état initial après 3 secondes
-        setTimeout(() => {
-          submitButton.innerHTML = originalText;
-          submitButton.style.backgroundColor = '';
-          submitButton.disabled = false;
-        }, 3000);
-      } else {
-        throw new Error('Erreur lors de l\'envoi');
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      submitButton.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erreur d\'envoi';
-      submitButton.style.backgroundColor = '#dc3545';
-      
-      showConfirmationMessage('Désolé, une erreur s\'est produite. Veuillez réessayer ou me contacter directement à matynext@outlook.com');
-      
-      setTimeout(() => {
+
+    // Paramètres pour EmailJS
+    const templateParams = {
+      from_name: document.getElementById('userName').value,
+      from_email: document.getElementById('userEmail').value,
+      message: document.getElementById('userMessage').value,
+      to_email: 'matynext@outlook.com' // Votre email
+    };
+
+    // Envoi via EmailJS
+    console.log('Données envoyées:', templateParams);
+    emailjs.send('service_0cloki4', 'template_d5lth5e', templateParams)
+      .then((response) => {
+        console.log('Email envoyé avec succès!', response.status, response.text);
+        showConfirmationMessage('✅ Votre message a été envoyé avec succès !');
+        contactForm.reset(); // Réinitialiser le formulaire
+      }, (error) => {
+        console.error('Erreur détaillée:', error);
+        showConfirmationMessage('❌ Erreur : ' + (error.text || error.message || 'Réessayez svp'));
+      })
+      .finally(() => {
+        // Restaurer le bouton
         submitButton.innerHTML = originalText;
-        submitButton.style.backgroundColor = '';
         submitButton.disabled = false;
-      }, 3000);
-    }
+      });
   });
+} else {
+  console.error('❌ Formulaire contactForm non trouvé!');
 }
 
 // Fonction pour afficher un message de confirmation
