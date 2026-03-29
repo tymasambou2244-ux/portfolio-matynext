@@ -62,3 +62,76 @@ window.addEventListener('scroll', () => {
   }
 });
 
+// Gestion du formulaire de contact
+const contactForm = document.getElementById('contactForm');
+if (contactForm) {
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); // Empêche la soumission par défaut
+    
+    const submitButton = contactForm.querySelector('.btn-submit');
+    const originalText = submitButton.innerHTML;
+    
+    // Change le texte du bouton pendant l'envoi
+    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Envoi en cours...';
+    submitButton.disabled = true;
+    
+    try {
+      const formData = new FormData(contactForm);
+      
+      const response = await fetch('https://formsubmit.co/matynext@outlook.com', {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (response.ok) {
+        // Succès
+        submitButton.innerHTML = '<i class="fas fa-check"></i> Message envoyé !';
+        submitButton.style.backgroundColor = '#28a745';
+        contactForm.reset();
+        
+        // Affiche un message de confirmation
+        showConfirmationMessage('Merci ! Votre message a été envoyé avec succès. Je vous répondrai bientôt.');
+        
+        // Remet le bouton à l'état initial après 3 secondes
+        setTimeout(() => {
+          submitButton.innerHTML = originalText;
+          submitButton.style.backgroundColor = '';
+          submitButton.disabled = false;
+        }, 3000);
+      } else {
+        throw new Error('Erreur lors de l\'envoi');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      submitButton.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Erreur d\'envoi';
+      submitButton.style.backgroundColor = '#dc3545';
+      
+      showConfirmationMessage('Désolé, une erreur s\'est produite. Veuillez réessayer ou me contacter directement à matynext@outlook.com');
+      
+      setTimeout(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.style.backgroundColor = '';
+        submitButton.disabled = false;
+      }, 3000);
+    }
+  });
+}
+
+// Fonction pour afficher un message de confirmation
+function showConfirmationMessage(message) {
+  // Supprime les anciens messages
+  const existingMessage = document.querySelector('.confirmation-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  // Crée un nouveau message
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'confirmation-message';
+  messageDiv.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+  
+  // Insère après le formulaire
+  const contactSection = document.querySelector('.contact-section');
+  contactSection.insertBefore(messageDiv, contactSection.querySelector('.contact-info'));
+}
+
